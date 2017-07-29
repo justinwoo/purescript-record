@@ -4,10 +4,11 @@ module Data.Record
   , modify
   , insert
   , delete
+  , union
   ) where
 
 import Data.Function.Uncurried (runFn2, runFn3)
-import Data.Record.Unsafe (unsafeGetFn, unsafeSetFn, unsafeDeleteFn)
+import Data.Record.Unsafe (unsafeGetFn, unsafeSetFn, unsafeDeleteFn, unsafeUnionFn)
 import Data.Symbol (class IsSymbol, SProxy, reflectSymbol)
 import Type.Row (class RowLacks)
 
@@ -109,3 +110,11 @@ delete
   -> Record r2
   -> Record r1
 delete l r = runFn2 unsafeDeleteFn (reflectSymbol l) r
+
+union
+  :: forall r1 r2 r3
+   . Union r1 r2 r3
+  => Record r1
+  -> Record r2
+  -> Record r3
+union r1 r2 = runFn2 unsafeUnionFn r1 r2

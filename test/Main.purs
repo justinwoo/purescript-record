@@ -3,7 +3,7 @@ module Test.Main where
 import Prelude
 
 import Control.Monad.Eff (Eff)
-import Data.Record (delete, get, insert, modify, set)
+import Data.Record (delete, get, insert, modify, set, union)
 import Data.Symbol (SProxy(..))
 import Test.Assert (ASSERT, assert')
 
@@ -22,3 +22,5 @@ main = do
     get x (modify x (_ + 1) (set x 0 { x: 42 })) == 1
   assert' "delete, get" $
     get x (delete y { x: 42, y: 1337 }) == 42
+  assert' "union, get" $
+    get x (union { x: 1 } { x: 2, y: 1}) == 1

@@ -24,3 +24,18 @@ exports.unsafeDeleteFn = function(label, rec) {
   }
   return copy;
 };
+
+exports.unsafeUnionFn = function(r1, r2) {
+  var union = {};
+  for (var key in r2) {
+    if ({}.hasOwnProperty.call(r2, key)) {
+      union[key] = r2[key];
+    }
+  }
+  for (var key in r1) {
+    if ({}.hasOwnProperty.call(r1, key)) {
+      union[key] = r1[key];
+    }
+  }
+  return union;
+}
