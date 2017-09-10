@@ -4,6 +4,7 @@ import Prelude
 
 import Control.Monad.Eff (Eff)
 import Data.Record (delete, get, insert, modify, set)
+import Data.Record as Record
 import Data.Record.Builder as Builder
 import Data.Symbol (SProxy(..))
 import Test.Assert (ASSERT, assert')
@@ -23,6 +24,9 @@ main = do
     get x (modify x (_ + 1) (set x 0 { x: 42 })) == 1
   assert' "delete, get" $
     get x (delete y { x: 42, y: 1337 }) == 42
+  assert' "map" do
+    let r = Record.map ((+) 1) {a: 1, b: 2, c: 3}
+    r.a == 2 && r.b == 3 && r.c == 4
 
   let testBuilder = Builder.build (Builder.insert x 42
                                   >>> Builder.merge { y: true, z: "testing" }

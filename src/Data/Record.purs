@@ -4,12 +4,17 @@ module Data.Record
   , modify
   , insert
   , delete
+  , map
+  , class MapRecord
+  , mapRecordImpl
   ) where
 
 import Data.Function.Uncurried (runFn2, runFn3)
 import Data.Record.Unsafe (unsafeGetFn, unsafeSetFn, unsafeDeleteFn)
-import Data.Symbol (class IsSymbol, SProxy, reflectSymbol)
-import Type.Row (class RowLacks)
+import Data.Symbol (class IsSymbol, reflectSymbol)
+import Prelude (($))
+import Type.Prelude (class RowToList, RLProxy(..), SProxy(..))
+import Type.Row (class RowLacks, Cons, Nil, kind RowList)
 
 -- | Get a property for a label which is specified using a value-level proxy for
 -- | a type-level string.
@@ -109,3 +114,40 @@ delete
   -> Record r2
   -> Record r1
 delete l r = runFn2 unsafeDeleteFn (reflectSymbol l) r
+
+-- | Map a function to the fields of a homogenous record.
+-- |
+-- | For example:
+-- |
+-- | ```purescript
+-- |  map ((+) 1) {a: 1, b: 2, c: 3}
+-- |           -- {a: 2, b: 3, d: 4}
+-- | ```
+map :: forall row xs a b row'
+   . RowToList row xs
+  => MapRecord xs row a b row'
+  => (a -> b)
+  -> Record row
+  -> Record row'
+map = mapRecordImpl (RLProxy :: RLProxy xs)
+
+class MapRecord (xs :: RowList) (row :: # Type) a b (row' :: # Type)
+  | xs -> row row' a b where
+  mapRecordImpl :: RLProxy xs -> (a -> b) -> Record row -> Record row'
+
+instance mapRecordCons ::
+  ( IsSymbol name
+  , RowCons name a trash row
+  , MapRecord tail row a b tailRow'
+  , RowLacks name tailRow'
+  , RowCons name b tailRow' row'
+  ) => MapRecord (Cons name a tail) row a b row' where
+  mapRecordImpl _ f r =
+    insert nameP val rest
+    where
+      nameP = SProxy :: SProxy name
+      val = f $ get nameP r
+      rest = mapRecordImpl (RLProxy :: RLProxy tail) f r
+
+instance mapRecordNil :: MapRecord Nil row a b () where
+  mapRecordImpl _ _ _ = {}
